@@ -1,22 +1,20 @@
 using NUnit.Framework;
 using Antlr4.Runtime;
-
 using LabCalculator;
 
 namespace LabCalculator.Tests
 {
-    [TestFixture]
-    public class LabCalculatorTests
+    public abstract class TestBase
     {
-        private LabCalculatorVisitor _calculator;
+        protected LabCalculatorVisitor Calculator;
 
         [SetUp]
         public void SetUp()
         {
-            _calculator = new LabCalculatorVisitor();
+            Calculator = new LabCalculatorVisitor();
         }
 
-        private double EvaluateExpression(string expression)
+        protected double EvaluateExpression(string expression)
         {
             var inputStream = new AntlrInputStream(expression);
             var lexer = new LabCalculatorLexer(inputStream);
@@ -24,29 +22,16 @@ namespace LabCalculator.Tests
             var parser = new LabCalculatorParser(tokenStream);
             var context = parser.compileUnit();
 
-            return _calculator.VisitCompileUnit(context);
+            return Calculator.VisitCompileUnit(context);
         }
+    }
 
-        [Test]
-        public void TestModuloOperation()
-        {
-            // Test: 10 mod 3
-            var result = EvaluateExpression("10 mod 3");
-            Assert.AreEqual(1, result);
-        }
-
-        [Test]
-        public void TestDivisionOperation()
-        {
-            // Test: 10 div 3
-            var result = EvaluateExpression("10 div 3");
-            Assert.AreEqual(3, result);
-        }
-
+    [TestFixture]
+    public class BinaryOperationTests : TestBase
+    {
         [Test]
         public void TestAdditionOperation()
         {
-            // Test: 5 + 3
             var result = EvaluateExpression("5 + 3");
             Assert.AreEqual(8, result);
         }
@@ -54,7 +39,6 @@ namespace LabCalculator.Tests
         [Test]
         public void TestSubtractionOperation()
         {
-            // Test: 5 - 3
             var result = EvaluateExpression("5 - 3");
             Assert.AreEqual(2, result);
         }
@@ -62,31 +46,38 @@ namespace LabCalculator.Tests
         [Test]
         public void TestMultiplicationOperation()
         {
-            // Test: 5 * 3
             var result = EvaluateExpression("5 * 3");
             Assert.AreEqual(15, result);
         }
 
         [Test]
+        public void TestDivisionOperation()
+        {
+            var result = EvaluateExpression("10 div 3");
+            Assert.AreEqual(3, result);
+        }
+
+        [Test]
         public void TestDivisionWithDecimalOperation()
         {
-            // Test: 10 / 4
             var result = EvaluateExpression("10 / 4");
             Assert.AreEqual(2.5, result);
         }
 
         [Test]
-        public void TestExponentiationOperation()
+        public void TestModuloOperation()
         {
-            // Test: 2 ^ 3
-            var result = EvaluateExpression("2 ^ 3");
-            Assert.AreEqual(8, result);
+            var result = EvaluateExpression("10 mod 3");
+            Assert.AreEqual(1, result);
         }
+    }
 
+    [TestFixture]
+    public class UnaryOperationTests : TestBase
+    {
         [Test]
         public void TestIncrementOperation()
         {
-            // Test: inc 5
             var result = EvaluateExpression("inc 5");
             Assert.AreEqual(6, result);
         }
@@ -94,15 +85,24 @@ namespace LabCalculator.Tests
         [Test]
         public void TestDecrementOperation()
         {
-            // Test: dec 5
             var result = EvaluateExpression("dec 5");
             Assert.AreEqual(4, result);
         }
 
         [Test]
+        public void TestExponentiationOperation()
+        {
+            var result = EvaluateExpression("2 ^ 3");
+            Assert.AreEqual(8, result);
+        }
+    }
+
+    [TestFixture]
+    public class ExpressionEvaluationTests : TestBase
+    {
+        [Test]
         public void TestParenthesizedExpression()
         {
-            // Test: (5 + 3) * 2
             var result = EvaluateExpression("(5 + 3) * 2");
             Assert.AreEqual(16, result);
         }
