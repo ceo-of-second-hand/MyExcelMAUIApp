@@ -7,7 +7,7 @@ using System.Linq; // Add for FirstOrDefault method
 
 using Grid = Microsoft.Maui.Controls.Grid;
 
-using System.Xml.Linq; 
+using System.Xml.Linq;
 using LabCalculator; //  LabCalculator contains the CurrentCell class
 
 namespace MyExcelMAUIApp
@@ -41,7 +41,7 @@ namespace MyExcelMAUIApp
             int dividend = colIndex; //індекс стовпця
             string columnName = string.Empty; //числове представлення рядка
 
-            while (dividend > 0) 
+            while (dividend > 0)
             {
                 int modulo = (dividend - 1) % 26;
                 columnName = Convert.ToChar(65 + modulo) + columnName;
@@ -137,24 +137,8 @@ namespace MyExcelMAUIApp
               ТУТ CELLS - ЦЕ бібліотека інша, тому повернеться не View, а CurrentCell*/
 
             //оновлюємо текст в клітинці (звісно не треба прям всі Affected перевіряти, але для надійності нехай буде 
-            cell.Text = current_grid.Cells[cellName].GetText(); 
+            cell.Text = current_grid.Cells[cellName].GetText();
         }
-
-        /*// Method to update the value in the visitor's dictionary
-        private void UpdateCellValue(string identifier, double value)
-        {
-            // Check if the cell exists in the dictionary
-            if (!cells.ContainsKey(identifier))
-            {
-                // If not, create a new CurrentCell and add it to the dictionary
-                cells[identifier] = new CurrentCell(identifier);
-            }
-
-            // Update the cell value
-            cells[identifier].Value = value;
-        }
-        */
-
 
         private void UpdateFully(string cellName)
         {
@@ -167,7 +151,6 @@ namespace MyExcelMAUIApp
             }
         }
 
-
         private void ChooseCell(object sender, EventArgs e)
         {
             CurrentGrid current_grid = CurrentGrid.Instance;
@@ -176,17 +159,17 @@ namespace MyExcelMAUIApp
                 textInput.IsReadOnly = false;
             }
 
-            // Reset the background color of the previously selected cell (if any)
+            // reset the background color of the previously selected cell (if any)
             if (selected != null)
             {
-                selected.BackgroundColor = new Color(255, 255, 255); // Reset to default background color (white)
+                selected.BackgroundColor = new Color(255, 255, 255); // reset to default background color (white)
             }
 
             // Update the selected cell
             selected = (Button)sender;
-            selected.BackgroundColor = new Color(255, 250, 205); // Lemon yellow background color
+            selected.BackgroundColor = new Color(255, 250, 205); // lemon yellow background color
 
-            textInput.Text = current_grid.Cells[GetCellName(selected)].Identifier; // Update the text value corresponding to the cell
+            textInput.Text = current_grid.Cells[GetCellName(selected)].Identifier; // update the text value corresponding to the cell
             textInput.Focus();
         }
 
@@ -209,7 +192,7 @@ namespace MyExcelMAUIApp
         {
             try
             {
-                
+
                 string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "SavedGrids");
 
                 if (!Directory.Exists(folderPath))
@@ -278,7 +261,6 @@ namespace MyExcelMAUIApp
 
             if (answer)
             {
-                // Close the application
                 Environment.Exit(0);
             }
         }
@@ -287,16 +269,16 @@ namespace MyExcelMAUIApp
         {
             try
             {
-                
+
                 var result = await FilePicker.PickAsync(new PickOptions
                 {
                     PickerTitle = "Select an XML file",
-                    FileTypes = null 
+                    FileTypes = null
                 });
 
                 if (result != null && File.Exists(result.FullPath))
                 {
-                    
+
                     var xdoc = XDocument.Load(result.FullPath);
                     var rootElement = xdoc.Root;
 
@@ -308,10 +290,9 @@ namespace MyExcelMAUIApp
                     CurrentGrid current_grid = CurrentGrid.Instance;
                     current_grid.Cells.Clear();
 
-                    // Reinitialize the grid
-                    int rowCount = int.Parse(rootElement.Attribute("RowCount").Value);
-                    int columnCount = int.Parse(rootElement.Attribute("ColumnCount").Value);
-                    CreateGrid(rowCount, columnCount);
+                    int rowCount = int.Parse(rootElement.Attribute("RowCount").Value); //// reinitialize the grid
+                    //int columnCount = int.Parse(rootElement.Attribute("ColumnCount").Value);
+                    CreateGrid(rowCount, CountColumn);
 
                     // Populate the grid with saved data
                     foreach (var rowElement in rootElement.Elements("Row"))
@@ -360,13 +341,13 @@ namespace MyExcelMAUIApp
 
         private async void HelpButton_Clicked(object sender, EventArgs e)
         {
-            await DisplayAlert("Довідка", "Лабораторна робота 1.Гіщак Іванни Богданівни",  "OK");
+            await DisplayAlert("Довідка", "Лабораторна робота 1.Гіщак Іванни Богданівни", "OK");
         }
 
-        private void CreateGrid(int RowsCount, int ColumnsCount)
+        private void CreateGrid(int CurrentRowCount , int ColumnsCount)
         {
             AddColumnsAndColumnLabels();
-            AddRowsAndCellEntries();
+            AddRowsAndCellEntries(CurrentRowCount);
 
         }
 
@@ -383,13 +364,12 @@ namespace MyExcelMAUIApp
 
                 if (cells.ContainsKey($"0{lastRowIndex}") && cells[$"0{lastRowIndex}"].IsFocused)
                 {
-                    var a1Cell = cells["A1"]; 
-                    a1Cell.Focus(); 
+                    var a1Cell = cells["A1"];
+                    a1Cell.Focus();
                 }
 
-                // Видаляємо рядок
                 grid.RowDefinitions.RemoveAt(lastRowIndex);
-                grid.Children.Remove(cells[$"0{lastRowIndex}"]); // Remove label
+                grid.Children.Remove(cells[$"0{lastRowIndex}"]); // remove label
 
                 for (var col = 1; col <= grid.ColumnDefinitions.Count - 1; col++)
                 {
@@ -399,8 +379,36 @@ namespace MyExcelMAUIApp
             }
         }
 
+        /*
+        private void DeleteRow()
+        {
+            CurrentGrid current_grid = CurrentGrid.Instance;
+            if (grid.RowDefinitions.Count > 1) // should not be less than 1 row !!!
+            {
+                var lastRowIndex = grid.RowDefinitions.Count - 1;
 
-        private void DeleteCell(string cellName)
+                for (var col = 1; col <= grid.ColumnDefinitions.Count - 1; col++)
+                {
+                    var cellName = GetColumnName(col) + lastRowIndex.ToString();
+
+                    if (cells.ContainsKey(cellName))
+                    {
+                        grid.Children.Remove(cells[cellName]); 
+                        cells.Remove(cellName);              
+                    }
+
+                    if (current_grid.Cells.ContainsKey(cellName))
+                    {
+                        current_grid.Cells.Remove(cellName); 
+                    }
+                }
+                grid.RowDefinitions.RemoveAt(lastRowIndex);
+            }
+        }
+
+        */
+
+        /*private void DeleteCell(string cellName)
         {
             CurrentGrid current_grid = CurrentGrid.Instance;
             foreach (var name in current_grid.Cells[cellName].AppearsIn)
@@ -417,6 +425,117 @@ namespace MyExcelMAUIApp
             grid.Children.Remove(cells[cellName]);
             cells.Remove(cellName);
             current_grid.Cells.Remove(cellName);
+        }*/
+
+        /*private void DeleteCell(string cellName)
+        {
+            CurrentGrid current_grid = CurrentGrid.Instance;
+            var queue = new Queue<string>();
+            queue.Enqueue(cellName);
+
+            while (queue.Count > 0)
+            {
+                var currentCellName = queue.Dequeue();
+
+                if (!current_grid.Cells.ContainsKey(currentCellName))
+                    continue;
+
+                var cellToDelete = current_grid.Cells[currentCellName];
+
+                // Очистка всіх залежностей
+                foreach (var dependentCellName in cellToDelete.AppearsIn.ToList())
+                {
+                    var dependentCell = current_grid.Cells[dependentCellName];
+                    if (dependentCell.DependsOn.Contains(currentCellName))
+                    {
+                        dependentCell.DependsOn.Remove(currentCellName);
+
+                        if (dependentCell.DependsOn.Count == 0)
+                        {
+                            // Якщо більше немає залежностей, очищаємо повністю
+                            dependentCell.Identifier = "";
+                            dependentCell.Value = 0.0;
+                        }
+                        else
+                        {
+                            // Якщо залишилися інші залежності, перераховуємо значення
+                            dependentCell.Value = Calculator.Evaluate(dependentCell.Identifier, current_grid);
+                        }
+
+                        // Додаємо залежну клітинку до черги для подальшого оновлення
+                        queue.Enqueue(dependentCellName);
+                    }
+                }
+
+                // Очищаємо AppearsIn у залежностях
+                foreach (var dependency in cellToDelete.DependsOn.ToList())
+                {
+                    if (current_grid.Cells.ContainsKey(dependency))
+                    {
+                        current_grid.Cells[dependency].AppearsIn.Remove(currentCellName);
+                    }
+                }
+
+                // Видаляємо клітинку
+                grid.Children.Remove(cells[currentCellName]);
+                cells.Remove(currentCellName);
+                current_grid.Cells.Remove(currentCellName);
+            }
+        }*/
+
+        private void DeleteCell(string cellName)
+        {
+            CurrentGrid current_grid = CurrentGrid.Instance;
+            var queue = new Queue<string>();//черга на оновлення ??
+
+            //adds to the back of the queue 
+            queue.Enqueue(cellName);
+
+            while (queue.Count > 0)
+            {
+                //знімаєм найвищу клітину з черги ([A, B, D]) -> A
+                var currentCellName = queue.Dequeue();
+
+                if (!current_grid.Cells.ContainsKey(currentCellName))
+                continue; 
+
+                var cellToDelete = current_grid.Cells[currentCellName];//retrieves Cell object (CurrentCell)
+
+                foreach (var dependentCellName in cellToDelete.AppearsIn.ToList())// очистка всіх залежностей
+                {
+                    var dependentCell = current_grid.Cells[dependentCellName];
+                    if (dependentCell.DependsOn.Contains(currentCellName))//just double checking:))
+                    {
+                        dependentCell.DependsOn.Remove(currentCellName);
+
+                        dependentCell.Identifier = "0";
+                        dependentCell.Value = 0.0;
+
+                        Update(dependentCellName);// оновлюємо текст у залежній клітинці
+
+                        queue.Enqueue(dependentCellName);// додаємо залежну клітинку до черги для подальшого оновлення
+                    }
+                }
+
+                // все правильно! (очищуємо такі клітинки: (A=B; B=3) -> getting rid of A in B_AppearsInList
+                foreach (var dependency in cellToDelete.DependsOn.ToList())
+                {
+                    if (current_grid.Cells.ContainsKey(dependency))
+                    {
+                        current_grid.Cells[dependency].AppearsIn.Remove(currentCellName);
+                    }
+                }
+            }
+            if (current_grid.Cells.ContainsKey(cellName))
+            {
+                current_grid.Cells.Remove(cellName);
+            }
+            current_grid.AffectedCells.Remove(cellName); //не додала первірку, бо не словник
+            if (cells.ContainsKey(cellName) && cells[cellName] is Button button)
+            {
+                grid.Children.Remove(button); 
+                cells.Remove(cellName);       
+            }
         }
 
         private void AddRowButton_Clicked(object sender, EventArgs e)
@@ -450,19 +569,19 @@ namespace MyExcelMAUIApp
             }
         }
 
-        private void AddRowsAndCellEntries()
+        private void AddRowsAndCellEntries(int CurrentRowCount)
         {
             CurrentGrid current_grid = CurrentGrid.Instance;
             {
                 int row = 0;
                 grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(75) });
-                
 
-                for (int row_real = 1; row_real < CountRow+1; row_real++)
+
+                for (int row_real = 1; row_real < CurrentRowCount + 1; row_real++)
                 {
                     //сітка буде мати на один рядок більше, і він готовий для розміщення в ньому елементів
                     //grid.RowDefinitions.Add(new RowDefinition());
-                    grid.RowDefinitions.Add(new RowDefinition {  Height = new GridLength(75)  });
+                    grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(75) });
                     // Додати підпис для номера рядка
                     var label = new Label
                     {
@@ -477,7 +596,7 @@ namespace MyExcelMAUIApp
                     cells[$"0{row_real}"] = label;// зберігає посилання на елемент(label) у колекції cells, використовуючи унікальний ключ, що містить номер рядка.
 
                     // Додати комірки (Entry) для вмісту
-                    for (int col = 1; col < grid.ColumnDefinitions.Count; col++) 
+                    for (int col = 1; col < grid.ColumnDefinitions.Count; col++)
                     {
                         var entry = new Entry
                         {
@@ -489,7 +608,7 @@ namespace MyExcelMAUIApp
                         current_grid.Cells.Add(GetColumnName(col) + row_real.ToString(), new CurrentCell());
                         var button = CreateCell();
                         entry.Unfocused += Entry_Unfocused; // обробник
-                        Grid.SetRow(button, row_real );
+                        Grid.SetRow(button, row_real);
                         Grid.SetColumn(button, col);
                         grid.Children.Add(button);
                         cells[GetCellName(button)] = button;
@@ -525,6 +644,3 @@ namespace MyExcelMAUIApp
 
     }
 }
-
-
-
